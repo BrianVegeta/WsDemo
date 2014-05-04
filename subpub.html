@@ -1,0 +1,80 @@
+<html>
+	<head>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+		<script src="http://autobahn.s3.amazonaws.com/js/autobahn.min.js" type="text/javascript"></script>
+
+		<script type="text/javascript">
+
+		var sess;
+		var channels = [];
+		var defaultChannels = ['channel:jmoz'];
+		var debug = false;
+
+		$(function() {
+			// connect to WAMP server
+			ab.connect("ws://localhost:8080",
+		  	function (session) {
+		  		// WAMP session was established
+			 		console.log("ab: session connected")
+			 		sess = session
+			 		on_connect()
+		  	},
+		  	function (code, reason) {
+		    	// WAMP session is gone
+		    	console.log("ab: session gone code " + code + " reason " + reason)
+		  	}
+			);
+
+			on_connect = function() {
+				// initialise default channels
+				console.log("ab: subscribing to default channels");
+				$.each(defaultChannels, function (i, el) {
+					subscribe_to(el);
+					add_channel(el);
+				});
+			}
+
+			subscribe_to = function (chan) {
+				if (!add_channel(chan)) {
+					return false;
+				}
+				sess.subscribe(chan, function (channel, event) {
+			 		console.log("ab: channel: " + channel + " event: " + event);
+			 	});
+			 	console.log("ab: subscribed to: " + chan);
+			 	return true;
+			}
+
+			unsubscribe = function(channel) {
+				remove_channel(channel)
+				sess.unsubscribe(channel)
+				console.log("ab: unsubscribed from: " + channel)
+			}
+
+			publish = function(channel, message) {
+				sess.publish(channel, message);
+			}
+
+			add_channel = function (channel) {
+				if (channels.indexOf(channel) != -1) {
+					return false;
+				}
+				channels.push(channel);
+				return channels;
+			}
+
+			remove_channel = function (channel) {
+				i = channels.indexOf(channel)
+				if (i == -1) {
+					return false
+				}
+				channels.splice(i, 1)
+				return channels
+			}
+		});
+		</script>
+	</head>	
+	<body>
+		
+	</body>
+</html>
